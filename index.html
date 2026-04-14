@@ -83,6 +83,7 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
 .sched-inp { flex:1; font-size:12px; padding:5px 4px; border:none; background:transparent; color:var(--color-text); font-family:inherit; min-height:28px; outline:none; resize:none; line-height:1.4; }
 .sched-inp:focus { background:var(--color-bg2); border-radius:4px; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -94,7 +95,7 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
   <div class="nav">
     <button class="active" onclick="showView('dashboard',this)">Dashboard</button>
     <button onclick="showView('daily',this)">Daily</button>
-    <button onclick="showView('weekly',this);loadWeekMeals()">Weekly</button>
+    <button onclick="showView('weekly',this);loadWeekMeals();buildWkCalendar()">Weekly</button>
     <button onclick="showView('monthly',this)">Monthly</button>
     <button onclick="showLTG(this)">Long Term Goals</button>
     <button onclick="exportData()" style="margin-left:auto;background:#E1F5EE;color:#0F6E56;border-color:#9FE1CB;">Export backup</button>
@@ -114,18 +115,35 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
       <div class="day-label" id="day-label">Loading...</div>
       <button onclick="changeDay(1)">Next →</button>
     </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:0.75rem;"><button id="shuffle-btn-daily" onclick="toggleShuffle('daily')" style="font-size:12px;padding:5px 14px;border:0.5px solid var(--color-border2);border-radius:6px;background:transparent;color:var(--color-text2);cursor:pointer;">✦ Shuffle layout</button></div>
     <div class="grid2">
       <!-- LEFT -->
-      <div>
+      <div id="sort-daily-left">
         <div class="card">
           <div class="tag" style="background:#E6F1FB;color:#0C447C;">Morning intention</div>
           <textarea id="d-intention" rows="2" placeholder="How do I want to show up today?" onchange="saveDay()"></textarea>
         </div>
         <div class="card">
-          <div class="tag" style="background:#FAEEDA;color:#633806;">Meals today</div>
+          <div class="tag" style="background:#E6F1FB;color:#0C447C;">Appointments</div>
+          <div class="cb-row"><span style="font-size:11px;font-weight:500;color:var(--color-text3);width:14px;flex-shrink:0;">1</span><select id="d-appt1-time" style="font-size:11px;padding:3px 4px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;flex-shrink:0;width:88px;" onchange="syncApptToSched(1);saveDay()"><<option value="">Time...</option><optgroup label="AM"><option value="5-0">5:00 AM</option><option value="5-1">5:30 AM</option><option value="6-0">6:00 AM</option><option value="6-1">6:30 AM</option><option value="7-0">7:00 AM</option><option value="7-1">7:30 AM</option><option value="8-0">8:00 AM</option><option value="8-1">8:30 AM</option><option value="9-0">9:00 AM</option><option value="9-1">9:30 AM</option><option value="10-0">10:00 AM</option><option value="10-1">10:30 AM</option><option value="11-0">11:00 AM</option><option value="11-1">11:30 AM</option><option value="11-0">11:00 AM</option><option value="11-1">11:30 AM</option></optgroup><optgroup label="PM"><option value="12-0">12:00 PM</option><option value="12-1">12:30 PM</option><option value="13-0">1:00 PM</option><option value="13-1">1:30 PM</option><option value="14-0">2:00 PM</option><option value="14-1">2:30 PM</option><option value="15-0">3:00 PM</option><option value="15-1">3:30 PM</option><option value="16-0">4:00 PM</option><option value="16-1">4:30 PM</option><option value="17-0">5:00 PM</option><option value="17-1">5:30 PM</option><option value="18-0">6:00 PM</option><option value="18-1">6:30 PM</option><option value="19-0">7:00 PM</option><option value="19-1">7:30 PM</option><option value="20-0">8:00 PM</option><option value="20-1">8:30 PM</option><option value="21-0">9:00 PM</option><option value="21-1">9:30 PM</option><option value="22-0">10:00 PM</option><option value="22-1">10:30 PM</option><option value="23-0">11:00 PM</option></optgroup></select><input type="text" id="d-appt1-text" style="flex:1;font-size:13px;padding:4px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;" placeholder="Appointment..." onchange="syncApptToSched(1);saveDay()"></div>
+          <div class="cb-row"><span style="font-size:11px;font-weight:500;color:var(--color-text3);width:14px;flex-shrink:0;">2</span><select id="d-appt2-time" style="font-size:11px;padding:3px 4px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;flex-shrink:0;width:88px;" onchange="syncApptToSched(2);saveDay()"><<option value="">Time...</option><optgroup label="AM"><option value="5-0">5:00 AM</option><option value="5-1">5:30 AM</option><option value="6-0">6:00 AM</option><option value="6-1">6:30 AM</option><option value="7-0">7:00 AM</option><option value="7-1">7:30 AM</option><option value="8-0">8:00 AM</option><option value="8-1">8:30 AM</option><option value="9-0">9:00 AM</option><option value="9-1">9:30 AM</option><option value="10-0">10:00 AM</option><option value="10-1">10:30 AM</option><option value="11-0">11:00 AM</option><option value="11-1">11:30 AM</option><option value="11-0">11:00 AM</option><option value="11-1">11:30 AM</option></optgroup><optgroup label="PM"><option value="12-0">12:00 PM</option><option value="12-1">12:30 PM</option><option value="13-0">1:00 PM</option><option value="13-1">1:30 PM</option><option value="14-0">2:00 PM</option><option value="14-1">2:30 PM</option><option value="15-0">3:00 PM</option><option value="15-1">3:30 PM</option><option value="16-0">4:00 PM</option><option value="16-1">4:30 PM</option><option value="17-0">5:00 PM</option><option value="17-1">5:30 PM</option><option value="18-0">6:00 PM</option><option value="18-1">6:30 PM</option><option value="19-0">7:00 PM</option><option value="19-1">7:30 PM</option><option value="20-0">8:00 PM</option><option value="20-1">8:30 PM</option><option value="21-0">9:00 PM</option><option value="21-1">9:30 PM</option><option value="22-0">10:00 PM</option><option value="22-1">10:30 PM</option><option value="23-0">11:00 PM</option></optgroup></select><input type="text" id="d-appt2-text" style="flex:1;font-size:13px;padding:4px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;" placeholder="Appointment..." onchange="syncApptToSched(2);saveDay()"></div>
+          <div class="cb-row" style="border-bottom:none;"><span style="font-size:11px;font-weight:500;color:var(--color-text3);width:14px;flex-shrink:0;">3</span><select id="d-appt3-time" style="font-size:11px;padding:3px 4px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;flex-shrink:0;width:88px;" onchange="syncApptToSched(3);saveDay()"><<option value="">Time...</option><optgroup label="AM"><option value="5-0">5:00 AM</option><option value="5-1">5:30 AM</option><option value="6-0">6:00 AM</option><option value="6-1">6:30 AM</option><option value="7-0">7:00 AM</option><option value="7-1">7:30 AM</option><option value="8-0">8:00 AM</option><option value="8-1">8:30 AM</option><option value="9-0">9:00 AM</option><option value="9-1">9:30 AM</option><option value="10-0">10:00 AM</option><option value="10-1">10:30 AM</option><option value="11-0">11:00 AM</option><option value="11-1">11:30 AM</option><option value="11-0">11:00 AM</option><option value="11-1">11:30 AM</option></optgroup><optgroup label="PM"><option value="12-0">12:00 PM</option><option value="12-1">12:30 PM</option><option value="13-0">1:00 PM</option><option value="13-1">1:30 PM</option><option value="14-0">2:00 PM</option><option value="14-1">2:30 PM</option><option value="15-0">3:00 PM</option><option value="15-1">3:30 PM</option><option value="16-0">4:00 PM</option><option value="16-1">4:30 PM</option><option value="17-0">5:00 PM</option><option value="17-1">5:30 PM</option><option value="18-0">6:00 PM</option><option value="18-1">6:30 PM</option><option value="19-0">7:00 PM</option><option value="19-1">7:30 PM</option><option value="20-0">8:00 PM</option><option value="20-1">8:30 PM</option><option value="21-0">9:00 PM</option><option value="21-1">9:30 PM</option><option value="22-0">10:00 PM</option><option value="22-1">10:30 PM</option><option value="23-0">11:00 PM</option></optgroup></select><input type="text" id="d-appt3-text" style="flex:1;font-size:13px;padding:4px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;" placeholder="Appointment..." onchange="syncApptToSched(3);saveDay()"></div>
+          <div style="font-size:10px;color:var(--color-text3);margin-top:8px;font-style:italic;">* Auto-fills daily schedule · Shows on weekly calendar</div>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div class="tag" style="background:#FAEEDA;color:#633806;margin-bottom:0;">Meals today</div>
+            <button onclick="openMealsPopup()" title="This week's meal options" style="width:28px;height:28px;border-radius:6px;border:0.5px solid var(--color-border2);background:var(--color-bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;">
+              <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 3.5 C8 3.5 8.5 1.5 10.5 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+                <path d="M5.5 4.5 C3 4.5 1.5 6.5 1.5 9 C1.5 12.5 4 15.5 6 15.5 C6.8 15.5 7.2 15 8 15 C8.8 15 9.2 15.5 10 15.5 C12 15.5 14.5 12.5 14.5 9 C14.5 6.5 13 4.5 10.5 4.5 C9.5 4.5 9 5 8 5 C7 5 6.5 4.5 5.5 4.5 Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </button>
+          </div>
           <div class="cb-row"><label style="width:80px;flex-shrink:0;">Breakfast</label><input type="text" id="d-meal-breakfast" style="flex:1;font-size:13px;padding:5px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;" placeholder="What's for breakfast..." onchange="saveDay()"></div>
           <div class="cb-row"><label style="width:80px;flex-shrink:0;">Lunch</label><input type="text" id="d-meal-lunch" style="flex:1;font-size:13px;padding:5px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;" placeholder="What's for lunch..." onchange="saveDay()"></div>
-          <div class="cb-row" style="border-bottom:none;"><label style="width:80px;flex-shrink:0;">Dinner</label><input type="text" id="d-meal-dinner" style="flex:1;font-size:13px;padding:5px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;" placeholder="What's for dinner..." onchange="saveDay()"></div>
+          <div class="cb-row"><label style="width:80px;flex-shrink:0;">Dinner</label><input type="text" id="d-meal-dinner" style="flex:1;font-size:13px;padding:5px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;" placeholder="What's for dinner..." onchange="saveDay()"></div>
+          <div class="cb-row" style="border-bottom:none;"><label style="width:80px;flex-shrink:0;">Snacks</label><input type="text" id="d-meal-snacks" style="flex:1;font-size:13px;padding:5px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;" placeholder="What are you snacking on..." onchange="saveDay()"></div>
           <div style="border-top:0.5px solid var(--color-border);padding-top:10px;margin-top:4px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
               <div style="font-size:12px;color:var(--color-text2);">Travis</div>
@@ -183,7 +201,7 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
         </div>
       </div>
       <!-- RIGHT -->
-      <div>
+      <div id="sort-daily-right">
         <div class="card">
           <div class="tag" style="background:#E1F5EE;color:#085041;">Today's priorities</div>
           <div style="font-size:11px;color:#0F6E56;font-weight:500;margin-bottom:6px;">Must do today — no matter what</div>
@@ -215,6 +233,7 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
 
   <!-- ═══ DASHBOARD ═══ -->
   <div id="view-dashboard" class="view active">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;"><button id="shuffle-btn-dashboard" onclick="toggleShuffle('dashboard')" style="font-size:12px;padding:5px 14px;border:0.5px solid var(--color-border2);border-radius:6px;background:transparent;color:var(--color-text2);cursor:pointer;">✦ Shuffle layout</button></div>
     <div class="grid4" style="margin-bottom:1rem;">
       <div class="stat"><div class="stat-label">Current weight</div><div class="stat-val" id="dash-weight">— lbs</div><div class="stat-sub" id="dash-togo">Log weight daily</div></div>
       <div class="stat"><div class="stat-label">Emergency fund</div><div class="stat-val" id="dash-savings">$0</div><div class="stat-sub">of $500 goal</div></div>
@@ -222,7 +241,7 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
       <div class="stat"><div class="stat-label">This week's mood</div><div class="stat-val" id="dash-mood">—</div><div class="stat-sub">most common</div></div>
     </div>
     <div class="grid2">
-      <div>
+      <div id="sort-dash-left">
         <div class="card">
           <div class="tag" style="background:#E1F5EE;color:#085041;">Health &amp; fitness</div>
           <div class="cb-row"><label>Weight (225→205) *</label><div class="pbar" style="width:120px;"><div class="pbar-fill" id="d-weight-bar" style="background:#1D9E75;width:0%;"></div></div><span class="hint" id="d-weight-pct">0%</span></div>
@@ -254,7 +273,7 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
           <div class="cb-row"><label>2 chores each assigned (Aug 1)</label><input type="checkbox" id="goal-chore2" onchange="saveDash()"></div>
         </div>
       </div>
-      <div>
+      <div id="sort-dash-right">
         <div class="card">
           <div class="tag" style="background:#FAEEDA;color:#633806;">Financial wellness</div>
           <div class="cb-row"><label>Budget written down (Apr 30)</label><input type="checkbox" id="goal-budget" onchange="saveDash()"></div>
@@ -288,47 +307,9 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
       <div class="week-label" id="week-label">Loading...</div>
       <button onclick="changeWeek(1)">Next →</button>
     </div>
-    <div class="grid2">
-      <div>
-        <div class="prog-section">
-          <div class="prog-title">Health &amp; habits — rolled up from daily entries</div>
-          <div class="prog-row"><div class="prog-label">Weight (225→205)</div><div class="prog-bar"><div class="prog-fill" id="wp-weight" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-weight">—</div></div>
-          <div class="prog-row"><div class="prog-label">Protein days ≥100g</div><div class="prog-bar"><div class="prog-fill" id="wp-protein" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-protein">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Walk days</div><div class="prog-bar"><div class="prog-fill" id="wp-walks" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-walks">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Vitamin days</div><div class="prog-bar"><div class="prog-fill" id="wp-vitamins" style="background:#534AB7;width:0%;"></div></div><div class="prog-val" id="wv-vitamins">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Hair routine days</div><div class="prog-bar"><div class="prog-fill" id="wp-hair" style="background:#534AB7;width:0%;"></div></div><div class="prog-val" id="wv-hair">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Reading days (≥15 min)</div><div class="prog-bar"><div class="prog-fill" id="wp-read" style="background:#3B6D11;width:0%;"></div></div><div class="prog-val" id="wv-read">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Total mins read</div><div class="prog-bar"><div class="prog-fill" id="wp-read-mins" style="background:#3B6D11;width:0%;"></div></div><div class="prog-val" id="wv-read-mins">0</div></div>
-          <div class="prog-row"><div class="prog-label">Home dinners</div><div class="prog-bar"><div class="prog-fill" id="wp-dinners" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-dinners">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">New food introduced</div><div class="prog-bar"><div class="prog-fill" id="wp-newfood" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-newfood">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Travis chore days</div><div class="prog-bar"><div class="prog-fill" id="wp-chore1" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-chore1">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Travis reading days</div><div class="prog-bar"><div class="prog-fill" id="wp-travis-read" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-travis-read">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Jamie chore days</div><div class="prog-bar"><div class="prog-fill" id="wp-chore2" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-chore2">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Jamie reading days</div><div class="prog-bar"><div class="prog-fill" id="wp-jamie-read" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-jamie-read">0/7</div></div>
-        </div>
-        <div class="prog-section">
-          <div class="prog-title">Relationships &amp; wellness</div>
-          <div class="prog-row"><div class="prog-label">BF quality time days</div><div class="prog-bar"><div class="prog-fill" id="wp-bf" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-bf">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Dad/brother touchpoints</div><div class="prog-bar"><div class="prog-fill" id="wp-fam" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-fam">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Mom/Shelbie connection</div><div class="prog-bar"><div class="prog-fill" id="wp-bestie" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-bestie">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Support outlet days</div><div class="prog-bar"><div class="prog-fill" id="wp-support" style="background:#185FA5;width:0%;"></div></div><div class="prog-val" id="wv-support">0/7</div></div>
-          <div class="prog-row"><div class="prog-label">Emergency fund</div><div class="prog-bar"><div class="prog-fill" id="wp-savings" style="background:#BA7517;width:0%;"></div></div><div class="prog-val" id="wv-savings">$0</div></div>
-          <div class="prog-row"><div class="prog-label">Divorce milestones</div><div class="prog-bar"><div class="prog-fill" id="wp-divorce" style="background:#185FA5;width:0%;"></div></div><div class="prog-val" id="wv-divorce">0/5</div></div>
-          <div style="margin-top:8px;"><div style="font-size:11px;font-weight:500;color:var(--color-text2);margin-bottom:6px;">MOOD THIS WEEK</div><div class="mood-summary" id="week-mood-summary"></div></div>
-        </div>
-      </div>
-      <div>
-        <div class="card">
-          <div class="tag" style="background:#EEEDFE;color:#3C3489;">Weekly reflection</div>
-          <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">What went well this week?</div><textarea id="w-good" rows="2" onchange="saveWeekNotes()"></textarea></div>
-          <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">What was hardest?</div><textarea id="w-hard" rows="2" onchange="saveWeekNotes()"></textarea></div>
-          <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">Win of the week:</div><textarea id="w-win" rows="2" onchange="saveWeekNotes()"></textarea></div>
-          <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">Did I use the minimum viable version of any goal?</div><textarea id="w-mvp" rows="2" onchange="saveWeekNotes()"></textarea></div>
-          <div><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:6px;">Overall week rating</div><div class="rating-row" id="w-rating"></div></div>
-        </div>
-      </div>
-    </div>
-    <div class="card" style="margin-top:0.75rem;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;"><button id="shuffle-btn-weekly" onclick="toggleShuffle('weekly')" style="font-size:12px;padding:5px 14px;border:0.5px solid var(--color-border2);border-radius:6px;background:transparent;color:var(--color-text2);cursor:pointer;">✦ Shuffle layout</button></div>
+    <div id="sort-weekly-top">
+    <div class="card" style="margin-bottom:0.75rem;">
       <div class="tag" style="background:#FAEEDA;color:#633806;">Weekly meal plan</div>
       <div style="font-size:11px;font-weight:500;color:var(--color-text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Dinners</div>
       <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-bottom:1rem;" id="wk-dinner-grid"></div>
@@ -359,6 +340,56 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
         </div>
       </div>
     </div>
+    <div class="card" style="margin-bottom:0.75rem;">
+      <div class="tag" style="background:#E6F1FB;color:#0C447C;">This week</div>
+      <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;" id="wk-cal-grid"></div>
+      <div style="font-size:10px;color:var(--color-text3);margin-top:8px;font-style:italic;">Hover a day to see appointments · Click to go to that day</div>
+    </div>
+    </div>
+    <div class="grid2">
+      <div id="sort-weekly-left">
+        <div class="card">
+        <div class="prog-section">
+          <div class="prog-title">Health &amp; habits — rolled up from daily entries</div>
+          <div class="prog-row"><div class="prog-label">Weight (225→205)</div><div class="prog-bar"><div class="prog-fill" id="wp-weight" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-weight">—</div></div>
+          <div class="prog-row"><div class="prog-label">Protein days ≥100g</div><div class="prog-bar"><div class="prog-fill" id="wp-protein" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-protein">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Walk days</div><div class="prog-bar"><div class="prog-fill" id="wp-walks" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-walks">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Vitamin days</div><div class="prog-bar"><div class="prog-fill" id="wp-vitamins" style="background:#534AB7;width:0%;"></div></div><div class="prog-val" id="wv-vitamins">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Hair routine days</div><div class="prog-bar"><div class="prog-fill" id="wp-hair" style="background:#534AB7;width:0%;"></div></div><div class="prog-val" id="wv-hair">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Reading days (≥15 min)</div><div class="prog-bar"><div class="prog-fill" id="wp-read" style="background:#3B6D11;width:0%;"></div></div><div class="prog-val" id="wv-read">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Total mins read</div><div class="prog-bar"><div class="prog-fill" id="wp-read-mins" style="background:#3B6D11;width:0%;"></div></div><div class="prog-val" id="wv-read-mins">0</div></div>
+          <div class="prog-row"><div class="prog-label">Home dinners</div><div class="prog-bar"><div class="prog-fill" id="wp-dinners" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-dinners">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">New food introduced</div><div class="prog-bar"><div class="prog-fill" id="wp-newfood" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-newfood">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Travis chore days</div><div class="prog-bar"><div class="prog-fill" id="wp-chore1" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-chore1">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Travis reading days</div><div class="prog-bar"><div class="prog-fill" id="wp-travis-read" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-travis-read">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Jamie chore days</div><div class="prog-bar"><div class="prog-fill" id="wp-chore2" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-chore2">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Jamie reading days</div><div class="prog-bar"><div class="prog-fill" id="wp-jamie-read" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="wv-jamie-read">0/7</div></div>
+        </div>
+        </div>
+        <div class="card">
+        <div class="prog-section">
+          <div class="prog-title">Relationships &amp; wellness</div>
+          <div class="prog-row"><div class="prog-label">BF quality time days</div><div class="prog-bar"><div class="prog-fill" id="wp-bf" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-bf">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Dad/brother touchpoints</div><div class="prog-bar"><div class="prog-fill" id="wp-fam" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-fam">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Mom/Shelbie connection</div><div class="prog-bar"><div class="prog-fill" id="wp-bestie" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="wv-bestie">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Support outlet days</div><div class="prog-bar"><div class="prog-fill" id="wp-support" style="background:#185FA5;width:0%;"></div></div><div class="prog-val" id="wv-support">0/7</div></div>
+          <div class="prog-row"><div class="prog-label">Emergency fund</div><div class="prog-bar"><div class="prog-fill" id="wp-savings" style="background:#BA7517;width:0%;"></div></div><div class="prog-val" id="wv-savings">$0</div></div>
+          <div class="prog-row"><div class="prog-label">Divorce milestones</div><div class="prog-bar"><div class="prog-fill" id="wp-divorce" style="background:#185FA5;width:0%;"></div></div><div class="prog-val" id="wv-divorce">0/5</div></div>
+          <div style="margin-top:8px;"><div style="font-size:11px;font-weight:500;color:var(--color-text2);margin-bottom:6px;">MOOD THIS WEEK</div><div class="mood-summary" id="week-mood-summary"></div></div>
+        </div>
+        </div>
+      </div>
+      <div id="sort-weekly-right">
+        <div class="card">
+          <div class="tag" style="background:#EEEDFE;color:#3C3489;">Weekly reflection</div>
+          <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">What went well this week?</div><textarea id="w-good" rows="2" onchange="saveWeekNotes()"></textarea></div>
+          <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">What was hardest?</div><textarea id="w-hard" rows="2" onchange="saveWeekNotes()"></textarea></div>
+          <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">Win of the week:</div><textarea id="w-win" rows="2" onchange="saveWeekNotes()"></textarea></div>
+          <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">Did I use the minimum viable version of any goal?</div><textarea id="w-mvp" rows="2" onchange="saveWeekNotes()"></textarea></div>
+          <div><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:6px;">Overall week rating</div><div class="rating-row" id="w-rating"></div></div>
+        </div>
+      </div>
+    </div>
     <button class="save-btn" onclick="saveWeekNotes();saveWeekMeals()">Save weekly notes</button>
     <div class="saved-badge" id="week-saved"></div>
   </div>
@@ -366,34 +397,42 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
   <!-- ═══ MONTHLY ═══ -->
   <div id="view-monthly" class="view">
     <div class="month-tabs" id="month-tabs"></div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;"><button id="shuffle-btn-monthly" onclick="toggleShuffle('monthly')" style="font-size:12px;padding:5px 14px;border:0.5px solid var(--color-border2);border-radius:6px;background:transparent;color:var(--color-text2);cursor:pointer;">✦ Shuffle layout</button></div>
+    <div style="text-align:center;margin-bottom:0.75rem;">
+      <div id="month-heading" style="font-size:44px;font-weight:500;color:var(--color-text);">April</div>
+    </div>
     <div class="grid2">
-      <div>
-        <div class="prog-section">
-          <div class="prog-title">Health &amp; habits — from daily entries</div>
-          <div class="rollup-note">All figures calculated automatically.</div>
-          <div class="prog-row"><div class="prog-label">Latest weight</div><div class="prog-bar"><div class="prog-fill" id="mp-weight" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-weight">—</div></div>
-          <div class="prog-row"><div class="prog-label">Protein days ≥100g</div><div class="prog-bar"><div class="prog-fill" id="mp-protein" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-protein">0</div></div>
-          <div class="prog-row"><div class="prog-label">Walk days</div><div class="prog-bar"><div class="prog-fill" id="mp-walks" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-walks">0</div></div>
-          <div class="prog-row"><div class="prog-label">Vitamin days</div><div class="prog-bar"><div class="prog-fill" id="mp-vitamins" style="background:#534AB7;width:0%;"></div></div><div class="prog-val" id="mv-vitamins">0</div></div>
-          <div class="prog-row"><div class="prog-label">Hair routine days</div><div class="prog-bar"><div class="prog-fill" id="mp-hair" style="background:#534AB7;width:0%;"></div></div><div class="prog-val" id="mv-hair">0</div></div>
-          <div class="prog-row"><div class="prog-label">Reading days (≥15 min)</div><div class="prog-bar"><div class="prog-fill" id="mp-read" style="background:#3B6D11;width:0%;"></div></div><div class="prog-val" id="mv-read">0</div></div>
-          <div class="prog-row"><div class="prog-label">Total mins read</div><div class="prog-bar"><div class="prog-fill" id="mp-read-mins" style="background:#3B6D11;width:0%;"></div></div><div class="prog-val" id="mv-read-mins">0</div></div>
-          <div class="prog-row"><div class="prog-label">Home dinners</div><div class="prog-bar"><div class="prog-fill" id="mp-dinners" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-dinners">0</div></div>
-          <div class="prog-row"><div class="prog-label">New food introduced</div><div class="prog-bar"><div class="prog-fill" id="mp-newfood" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-newfood">0</div></div>
-          <div class="prog-row"><div class="prog-label">Travis chore days</div><div class="prog-bar"><div class="prog-fill" id="mp-chore1" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-chore1">0</div></div>
-          <div class="prog-row"><div class="prog-label">Travis reading days</div><div class="prog-bar"><div class="prog-fill" id="mp-travis-read" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-travis-read">0</div></div>
-          <div class="prog-row"><div class="prog-label">Jamie chore days</div><div class="prog-bar"><div class="prog-fill" id="mp-chore2" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-chore2">0</div></div>
-          <div class="prog-row"><div class="prog-label">Jamie reading days</div><div class="prog-bar"><div class="prog-fill" id="mp-jamie-read" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-jamie-read">0</div></div>
+      <div id="sort-monthly-left">
+        <div class="card">
+          <div class="prog-section">
+            <div class="prog-title">Health &amp; habits — from daily entries</div>
+            <div class="rollup-note">All figures calculated automatically.</div>
+            <div class="prog-row"><div class="prog-label">Latest weight</div><div class="prog-bar"><div class="prog-fill" id="mp-weight" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-weight">—</div></div>
+            <div class="prog-row"><div class="prog-label">Protein days ≥100g</div><div class="prog-bar"><div class="prog-fill" id="mp-protein" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-protein">0</div></div>
+            <div class="prog-row"><div class="prog-label">Walk days</div><div class="prog-bar"><div class="prog-fill" id="mp-walks" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-walks">0</div></div>
+            <div class="prog-row"><div class="prog-label">Vitamin days</div><div class="prog-bar"><div class="prog-fill" id="mp-vitamins" style="background:#534AB7;width:0%;"></div></div><div class="prog-val" id="mv-vitamins">0</div></div>
+            <div class="prog-row"><div class="prog-label">Hair routine days</div><div class="prog-bar"><div class="prog-fill" id="mp-hair" style="background:#534AB7;width:0%;"></div></div><div class="prog-val" id="mv-hair">0</div></div>
+            <div class="prog-row"><div class="prog-label">Reading days (≥15 min)</div><div class="prog-bar"><div class="prog-fill" id="mp-read" style="background:#3B6D11;width:0%;"></div></div><div class="prog-val" id="mv-read">0</div></div>
+            <div class="prog-row"><div class="prog-label">Total mins read</div><div class="prog-bar"><div class="prog-fill" id="mp-read-mins" style="background:#3B6D11;width:0%;"></div></div><div class="prog-val" id="mv-read-mins">0</div></div>
+            <div class="prog-row"><div class="prog-label">Home dinners</div><div class="prog-bar"><div class="prog-fill" id="mp-dinners" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-dinners">0</div></div>
+            <div class="prog-row"><div class="prog-label">New food introduced</div><div class="prog-bar"><div class="prog-fill" id="mp-newfood" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-newfood">0</div></div>
+            <div class="prog-row"><div class="prog-label">Travis chore days</div><div class="prog-bar"><div class="prog-fill" id="mp-chore1" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-chore1">0</div></div>
+            <div class="prog-row"><div class="prog-label">Travis reading days</div><div class="prog-bar"><div class="prog-fill" id="mp-travis-read" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-travis-read">0</div></div>
+            <div class="prog-row"><div class="prog-label">Jamie chore days</div><div class="prog-bar"><div class="prog-fill" id="mp-chore2" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-chore2">0</div></div>
+            <div class="prog-row"><div class="prog-label">Jamie reading days</div><div class="prog-bar"><div class="prog-fill" id="mp-jamie-read" style="background:#993556;width:0%;"></div></div><div class="prog-val" id="mv-jamie-read">0</div></div>
+          </div>
         </div>
-        <div class="prog-section">
-          <div class="prog-title">Relationships &amp; wellness</div>
-          <div class="prog-row"><div class="prog-label">BF quality time days</div><div class="prog-bar"><div class="prog-fill" id="mp-bf" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-bf">0</div></div>
-          <div class="prog-row"><div class="prog-label">Dad/brother touchpoints</div><div class="prog-bar"><div class="prog-fill" id="mp-fam" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-fam">0</div></div>
-          <div class="prog-row"><div class="prog-label">Mom/Shelbie connection</div><div class="prog-bar"><div class="prog-fill" id="mp-bestie" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-bestie">0</div></div>
-          <div class="prog-row"><div class="prog-label">Support outlet days</div><div class="prog-bar"><div class="prog-fill" id="mp-support" style="background:#185FA5;width:0%;"></div></div><div class="prog-val" id="mv-support">0</div></div>
-          <div class="prog-row"><div class="prog-label">Emergency fund</div><div class="prog-bar"><div class="prog-fill" id="mp-savings" style="background:#BA7517;width:0%;"></div></div><div class="prog-val" id="mv-savings">$0</div></div>
-          <div class="prog-row"><div class="prog-label">Divorce milestones</div><div class="prog-bar"><div class="prog-fill" id="mp-divorce" style="background:#185FA5;width:0%;"></div></div><div class="prog-val" id="mv-divorce">0/5</div></div>
-          <div style="margin-top:8px;"><div style="font-size:11px;font-weight:500;color:var(--color-text2);margin-bottom:6px;">MOOD THIS MONTH</div><div class="mood-summary" id="month-mood-summary"></div></div>
+        <div class="card">
+          <div class="prog-section">
+            <div class="prog-title">Relationships &amp; wellness</div>
+            <div class="prog-row"><div class="prog-label">BF quality time days</div><div class="prog-bar"><div class="prog-fill" id="mp-bf" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-bf">0</div></div>
+            <div class="prog-row"><div class="prog-label">Dad/brother touchpoints</div><div class="prog-bar"><div class="prog-fill" id="mp-fam" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-fam">0</div></div>
+            <div class="prog-row"><div class="prog-label">Mom/Shelbie connection</div><div class="prog-bar"><div class="prog-fill" id="mp-bestie" style="background:#1D9E75;width:0%;"></div></div><div class="prog-val" id="mv-bestie">0</div></div>
+            <div class="prog-row"><div class="prog-label">Support outlet days</div><div class="prog-bar"><div class="prog-fill" id="mp-support" style="background:#185FA5;width:0%;"></div></div><div class="prog-val" id="mv-support">0</div></div>
+            <div class="prog-row"><div class="prog-label">Emergency fund</div><div class="prog-bar"><div class="prog-fill" id="mp-savings" style="background:#BA7517;width:0%;"></div></div><div class="prog-val" id="mv-savings">$0</div></div>
+            <div class="prog-row"><div class="prog-label">Divorce milestones</div><div class="prog-bar"><div class="prog-fill" id="mp-divorce" style="background:#185FA5;width:0%;"></div></div><div class="prog-val" id="mv-divorce">0/5</div></div>
+            <div style="margin-top:8px;"><div style="font-size:11px;font-weight:500;color:var(--color-text2);margin-bottom:6px;">MOOD THIS MONTH</div><div class="mood-summary" id="month-mood-summary"></div></div>
+          </div>
         </div>
         <div class="card">
           <div class="tag" style="background:#FAEEDA;color:#633806;">Finances</div>
@@ -401,7 +440,33 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
           <div style="margin-top:8px;"><div style="font-size:12px;color:var(--color-text2);margin-bottom:4px;">Unexpected expenses?</div><textarea id="m-expenses" rows="2" onchange="saveMonthNotes()"></textarea></div>
         </div>
       </div>
-      <div>
+      <div id="sort-monthly-right">
+        <div class="card" style="display:flex;flex-direction:column;">
+          <div class="tag" style="background:#E6F1FB;color:#0C447C;">Monthly intention</div>
+          <div style="font-size:12px;color:var(--color-text2);margin-bottom:8px;font-style:italic;">This month I want to feel...</div>
+          <textarea id="m-intention" rows="6" placeholder="Write your intention here..." onchange="saveMonthNotes()" style="flex:1;resize:none;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;line-height:1.5;min-height:120px;width:100%;"></textarea>
+        </div>
+        <div class="card">
+          <div class="tag" style="background:#E1F5EE;color:#085041;">Wins this month *</div>
+          <div style="text-align:center;padding:1rem 0 0.5rem;">
+            <div style="font-size:42px;font-weight:500;color:#1D9E75;line-height:1;" id="m-wins-num">—</div>
+            <div style="font-size:15px;color:var(--color-text2);margin-top:4px;" id="m-wins-denom">of — weekly wins completed</div>
+            <div style="font-size:11px;color:var(--color-text3);margin-top:8px;font-style:italic;">* Auto-counted from weekly win checkboxes</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tag" style="background:#EEEDFE;color:#3C3489;">Monthly goals</div>
+          <div class="cb-row"><input type="checkbox" id="mg1" onchange="saveMonthNotes()" style="width:15px;height:15px;accent-color:#1D9E75;flex-shrink:0;"><input type="text" id="mg1t" placeholder="Goal 1..." onchange="saveMonthNotes()" style="flex:1;font-size:11px;padding:4px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;"></div>
+          <div class="cb-row"><input type="checkbox" id="mg2" onchange="saveMonthNotes()" style="width:15px;height:15px;accent-color:#1D9E75;flex-shrink:0;"><input type="text" id="mg2t" placeholder="Goal 2..." onchange="saveMonthNotes()" style="flex:1;font-size:11px;padding:4px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;"></div>
+          <div class="cb-row"><input type="checkbox" id="mg3" onchange="saveMonthNotes()" style="width:15px;height:15px;accent-color:#1D9E75;flex-shrink:0;"><input type="text" id="mg3t" placeholder="Goal 3..." onchange="saveMonthNotes()" style="flex:1;font-size:11px;padding:4px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;"></div>
+          <div class="cb-row"><input type="checkbox" id="mg4" onchange="saveMonthNotes()" style="width:15px;height:15px;accent-color:#1D9E75;flex-shrink:0;"><input type="text" id="mg4t" placeholder="Goal 4..." onchange="saveMonthNotes()" style="flex:1;font-size:11px;padding:4px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;"></div>
+          <div class="cb-row" style="border-bottom:none;"><input type="checkbox" id="mg5" onchange="saveMonthNotes()" style="width:15px;height:15px;accent-color:#1D9E75;flex-shrink:0;"><input type="text" id="mg5t" placeholder="Goal 5..." onchange="saveMonthNotes()" style="flex:1;font-size:11px;padding:4px 8px;border:0.5px solid var(--color-border2);border-radius:6px;background:var(--color-bg2);color:var(--color-text);font-family:inherit;"></div>
+        </div>
+        <div class="card">
+          <div class="tag" style="background:#FAEEDA;color:#633806;">Habit streaks this month *</div>
+          <div style="font-size:10px;color:var(--color-text3);margin-bottom:10px;font-style:italic;">Longest consecutive streak for each habit</div>
+          <div id="m-streak-rows"></div>
+        </div>
         <div class="card">
           <div class="tag" style="background:#EEEDFE;color:#3C3489;">Monthly reflection</div>
           <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">What went well this month?</div><textarea id="m-good" rows="3" onchange="saveMonthNotes()"></textarea></div>
@@ -432,11 +497,10 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
       <div class="divorce-step"><input type="checkbox" id="d5" onchange="saveDivorce()"><label for="d5"><strong>Papers ready to submit to court</strong><span class="due">July 1, 2026 — 30-day waiting period starts on filing. Done by August.</span></label></div>
     </div>
     <div class="card"><div style="font-size:13px;font-weight:500;margin-bottom:8px;">Notes &amp; next action</div><textarea id="d-notes" rows="4" placeholder="What is your next concrete step?" onchange="saveDivorce()"></textarea></div>
-    <button class="save-btn" onclick="saveDivorce()">Save progress</button>
-    <div class="saved-badge" id="divorce-saved"></div>
+    <div style="text-align:center;margin-top:0.5rem;"><span class="saved-badge" id="divorce-saved"></span></div>
     </div><!-- end ltg-divorce -->
 
-    <div id="ltg-finances" style="margin-top:1.5rem;">
+    <div id="ltg-finances" style="margin-top:1.5rem;display:none;">
       <div style="font-size:16px;font-weight:500;color:var(--color-text);margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:0.5px solid var(--color-border);">Finances</div>
 
       <!-- Emergency fund -->
@@ -516,14 +580,61 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
         </div>
       </div>
 
-      <button class="save-btn" onclick="saveFinances()">Save finances</button>
-      <div class="saved-badge" id="fin-saved"></div>
+      <div style="text-align:center;margin-top:0.5rem;"><span class="saved-badge" id="fin-saved"></span></div>
     </div><!-- end ltg-finances -->
   </div><!-- end view-ltg -->
+  <!-- Meals options popup -->
+  <div id="meals-popup-overlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this)closeMealsPopup()">
+    <div style="background:var(--color-bg);border:0.5px solid var(--color-border2);border-radius:12px;padding:1.25rem;width:280px;max-width:90vw;" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:500;color:var(--color-text);">This week's options</div>
+        <button onclick="closeMealsPopup()" style="font-size:20px;line-height:1;background:none;border:none;cursor:pointer;color:var(--color-text3);padding:0;">×</button>
+      </div>
+      <div id="meals-popup-bf" style="margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:500;color:var(--color-text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Breakfast</div>
+        <div id="meals-popup-bf-list"></div>
+      </div>
+      <div id="meals-popup-lu" style="margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:500;color:var(--color-text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Lunch</div>
+        <div id="meals-popup-lu-list"></div>
+      </div>
+      <div id="meals-popup-sn">
+        <div style="font-size:10px;font-weight:500;color:var(--color-text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Snacks</div>
+        <div id="meals-popup-sn-list"></div>
+      </div>
+    </div>
+  </div>
 </div><!-- end app -->
 <div style="font-size:11px;color:var(--color-text3);padding:0.5rem 12px 1rem;max-width:900px;margin:0 auto;">* Calculated automatically from your daily entries</div>
 
 <script>
+// localStorage-based storage shim — works on GitHub Pages and anywhere
+const window_storage = {
+  get: function(key) {
+    try {
+      const v = localStorage.getItem(key);
+      if (v === null) return null;
+      return { key: key, value: v };
+    } catch(e) { return null; }
+  },
+  set: function(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return { key: key, value: value };
+    } catch(e) { return null; }
+  },
+  list: function(prefix) {
+    try {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!prefix || k.startsWith(prefix)) keys.push(k);
+      }
+      return { keys: keys };
+    } catch(e) { return { keys: [] }; }
+  }
+};
+
 const MONTHS=['April','May','June','July','August','September'];
 const MONTH_NUMS={April:4,May:5,June:6,July:7,August:8,September:9};
 const MOODS=['Energized','Good','Okay','Tired','Stressed','Overwhelmed'];
@@ -633,7 +744,7 @@ function makeRating(){
 function getRating(){const s=document.querySelector('#w-rating button.selected');return s?parseInt(s.dataset.val):0;}
 function setRating(v){document.querySelectorAll('#w-rating button').forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.val)===v));}
 
-function dayKey(off){const d=new Date();d.setDate(d.getDate()+off);return `day-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function dayKey(off){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return `day-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function dayLabel(off){
   const d=new Date();d.setDate(d.getDate()+off);
   if(off===0)return 'Today — '+d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
@@ -656,7 +767,7 @@ async function aggWeek(wOff){
   for(let i=0;i<7;i++){
     const d=new Date(mon);d.setDate(mon.getDate()+i);if(d>new Date())continue;
     const k=`day-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    let data={};try{const r=await window.storage.get(k);if(r)data=JSON.parse(r.value);}catch(e){}
+    let data={};try{const r=await window_storage.get(k);if(r)data=JSON.parse(r.value);}catch(e){}
     if(data.walk)walks++;if(data.protein&&parseFloat(data.protein)>=100)protein++;
     if(data.hair)hair++;if(data.vitamins)vitamins++;if(data.dinner)dinners++;
     if(data.newfood)newfood++;if(data.chore1)c1++;if(data.chore2)c2++;
@@ -676,7 +787,7 @@ async function aggMonth(mName){
   const mc={};MOODS.forEach(m=>mc[m]=0);
   for(let day=1;day<=dm;day++){
     const k=`day-2026-${String(mNum).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    let data={};try{const r=await window.storage.get(k);if(r)data=JSON.parse(r.value);}catch(e){}
+    let data={};try{const r=await window_storage.get(k);if(r)data=JSON.parse(r.value);}catch(e){}
     if(data.walk)walks++;if(data.protein&&parseFloat(data.protein)>=100)protein++;
     if(data.hair)hair++;if(data.vitamins)vitamins++;if(data.dinner)dinners++;
     if(data.newfood)newfood++;if(data.chore1)c1++;if(data.chore2)c2++;
@@ -748,6 +859,8 @@ function pushWeek(a){
 
 function pushMonth(a){
   if(!a)return;const dm=a.dm||30;
+  renderMonthStreaks(currentMonth);
+  renderMonthWins(currentMonth);
   setBar('mp-walks',a.walks,dm);set('mv-walks',a.walks);
   setBar('mp-protein',a.protein,dm);set('mv-protein',a.protein);
   setBar('mp-vitamins',a.vitamins,dm);set('mv-vitamins',a.vitamins);
@@ -781,7 +894,10 @@ async function saveDay(){
     weight:val('d-weight'),protein:val('d-protein'),
     vitamins:chk('d-vitamins'),walk:chk('d-walk'),hair:chk('d-hair'),dinner:chk('d-dinner'),newfood:chk('d-newfood'),
     read:chk('d-read')||rm>=15,readMins:rm,readBook:val('d-read-book'),
-    mealBreakfast:val('d-meal-breakfast'),mealLunch:val('d-meal-lunch'),mealDinner:val('d-meal-dinner'),
+    appt1Time:val('d-appt1-time'),appt1Text:val('d-appt1-text'),
+    appt2Time:val('d-appt2-time'),appt2Text:val('d-appt2-text'),
+    appt3Time:val('d-appt3-time'),appt3Text:val('d-appt3-text'),
+    mealBreakfast:val('d-meal-breakfast'),mealLunch:val('d-meal-lunch'),mealDinner:val('d-meal-dinner'),mealSnacks:val('d-meal-snacks'),
     chore1:chk('d-chore1'),chore2:chk('d-chore2'),
     travisRead:chk('d-travis-read'),jamieRead:chk('d-jamie-read'),
     bf:chk('d-bf'),fam:chk('d-fam'),bestie:chk('d-bestie'),support:chk('d-support'),
@@ -789,7 +905,7 @@ async function saveDay(){
     reflect0:r0?r0.value:'',reflect1:r1?r1.value:'',
     schedule:schedData,
   };
-  try{await window.storage.set(key,JSON.stringify(data));flash('day-saved');}catch(e){}
+  try{await window_storage.set(key,JSON.stringify(data));flash('day-saved');}catch(e){}
   if(data.weight)syncWeight(parseFloat(data.weight));
   const wa=await aggWeek(weekOffset);pushWeek(wa);
   const mn=dayMonthName(dayOffset);
@@ -804,7 +920,7 @@ async function loadDay(){
   document.getElementById('day-label').textContent=dayLabel(dayOffset);
   document.getElementById('day-saved').textContent='';
   buildReflectionPrompts(dayOffset);
-  let data={};try{const r=await window.storage.get(dayKey(dayOffset));if(r)data=JSON.parse(r.value);}catch(e){}
+  let data={};try{const r=await window_storage.get(dayKey(dayOffset));if(r)data=JSON.parse(r.value);}catch(e){}
   document.getElementById('d-intention').value=data.intention||'';
   document.getElementById('d-must').value=data.must||'';document.getElementById('d-must-cb').checked=data.mustCb||false;
   ['p1','p2','p3'].forEach(p=>{document.getElementById(`d-${p}`).value=data[p]||'';document.getElementById(`d-${p}-cb`).checked=data[`${p}cb`]||false;});
@@ -813,9 +929,17 @@ async function loadDay(){
   document.getElementById('d-hair').checked=data.hair||false;document.getElementById('d-dinner').checked=data.dinner||false;
   document.getElementById('d-newfood').checked=data.newfood||false;
   document.getElementById('d-read').checked=data.read||false;document.getElementById('d-read-mins').value=data.readMins||'';
+  document.getElementById('d-appt1-time').value=data.appt1Time||'';
+  document.getElementById('d-appt1-text').value=data.appt1Text||'';
+  document.getElementById('d-appt2-time').value=data.appt2Time||'';
+  document.getElementById('d-appt2-text').value=data.appt2Text||'';
+  document.getElementById('d-appt3-time').value=data.appt3Time||'';
+  document.getElementById('d-appt3-text').value=data.appt3Text||'';
+  syncApptToSched(1);syncApptToSched(2);syncApptToSched(3);
   document.getElementById('d-meal-breakfast').value=data.mealBreakfast||'';
   document.getElementById('d-meal-lunch').value=data.mealLunch||'';
   document.getElementById('d-meal-dinner').value=data.mealDinner||'';
+  document.getElementById('d-meal-snacks').value=data.mealSnacks||'';
   updateDailyLunchBadges();
   document.getElementById('d-read-book').value=data.readBook||'';
   document.getElementById('d-chore1').checked=data.chore1||false;document.getElementById('d-chore2').checked=data.chore2||false;
@@ -835,25 +959,31 @@ function changeDay(dir){dayOffset+=dir;loadDay();}
 
 async function saveWeekNotes(){
   const data={good:val('w-good'),hard:val('w-hard'),win:val('w-win'),mvp:val('w-mvp'),rating:getRating()};
-  try{await window.storage.set('week-notes-'+weekKeyFn(weekOffset),JSON.stringify(data));flash('week-saved');}catch(e){}
+  try{await window_storage.set('week-notes-'+weekKeyFn(weekOffset),JSON.stringify(data));flash('week-saved');}catch(e){}
 }
 async function loadWeekNotes(){
   document.getElementById('week-label').textContent=weekLabelFn(weekOffset);
-  let data={};try{const r=await window.storage.get('week-notes-'+weekKeyFn(weekOffset));if(r)data=JSON.parse(r.value);}catch(e){}
+  let data={};try{const r=await window_storage.get('week-notes-'+weekKeyFn(weekOffset));if(r)data=JSON.parse(r.value);}catch(e){}
   document.getElementById('w-good').value=data.good||'';document.getElementById('w-hard').value=data.hard||'';
   document.getElementById('w-win').value=data.win||'';document.getElementById('w-mvp').value=data.mvp||'';
   setRating(data.rating||0);
 }
-function changeWeek(dir){weekOffset+=dir;loadWeekNotes();loadWeekMeals();aggWeek(weekOffset).then(pushWeek);}
+function changeWeek(dir){weekOffset+=dir;loadWeekNotes();loadWeekMeals();buildWkCalendar();aggWeek(weekOffset).then(pushWeek);}
 
 async function saveMonthNotes(){
   const data={good:val('m-good'),hard:val('m-hard'),mvp:val('m-mvp'),diff:val('m-diff'),proud:val('m-proud'),total:val('m-total'),expenses:val('m-expenses')};
-  try{await window.storage.set('month-notes-'+currentMonth,JSON.stringify(data));flash('month-saved');}catch(e){}
+  try{await window_storage.set('month-notes-'+currentMonth,JSON.stringify(data));flash('month-saved');}catch(e){}
   if(data.total)syncSavings(parseInt(data.total));
 }
 async function loadMonthNotes(){
-  let data={};try{const r=await window.storage.get('month-notes-'+currentMonth);if(r)data=JSON.parse(r.value);}catch(e){}
+  let data={};try{const r=await window_storage.get('month-notes-'+currentMonth);if(r)data=JSON.parse(r.value);}catch(e){}
   document.getElementById('m-good').value=data.good||'';document.getElementById('m-hard').value=data.hard||'';
+  if(document.getElementById('m-intention'))document.getElementById('m-intention').value=data.intention||'';
+  for(let i=1;i<=5;i++){
+    const cb=document.getElementById('mg'+i);const inp=document.getElementById('mg'+i+'t');
+    if(cb)cb.checked=data['mg'+i]||false;
+    if(inp)inp.value=data['mg'+i+'t']||'';
+  }
   document.getElementById('m-mvp').value=data.mvp||'';document.getElementById('m-diff').value=data.diff||'';
   document.getElementById('m-proud').value=data.proud||'';document.getElementById('m-total').value=data.total||'';
   document.getElementById('m-expenses').value=data.expenses||'';
@@ -865,18 +995,18 @@ function buildMonthTabs(){
   MONTHS.forEach(m=>{
     const btn=document.createElement('button');btn.textContent=m;
     if(m===currentMonth)btn.classList.add('active');
-    btn.onclick=async()=>{currentMonth=m;buildMonthTabs();await loadMonthNotes();const a=await aggMonth(m);pushMonth(a);};
+    btn.onclick=async()=>{currentMonth=m;buildMonthTabs();const h=document.getElementById('month-heading');if(h)h.textContent=m;await loadMonthNotes();const a=await aggMonth(m);pushMonth(a);};
     el.appendChild(btn);
   });
 }
 
 async function saveDivorce(){
   const data={d1:chk('d1'),d2:chk('d2'),d3:chk('d3'),d4:chk('d4'),d5:chk('d5'),notes:val('d-notes')};
-  try{await window.storage.set('divorce',JSON.stringify(data));flash('divorce-saved');}catch(e){}
+  try{await window_storage.set('divorce',JSON.stringify(data));flash('divorce-saved');}catch(e){}
   syncDivorce(['d1','d2','d3','d4','d5'].filter(id=>data[id]).length);
 }
 async function loadDivorce(){
-  try{const r=await window.storage.get('divorce');if(!r)return;const d=JSON.parse(r.value);
+  try{const r=await window_storage.get('divorce');if(!r)return;const d=JSON.parse(r.value);
     ['d1','d2','d3','d4','d5'].forEach(id=>{document.getElementById(id).checked=d[id]||false;});
     document.getElementById('d-notes').value=d.notes||'';
     syncDivorce(['d1','d2','d3','d4','d5'].filter(id=>d[id]).length);}catch(e){}
@@ -888,7 +1018,7 @@ const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 let dinnerWeekOffset = 0;
 
 function dinnerWeekSun(off){
-  const d=new Date();d.setDate(d.getDate()-d.getDay()+off*7);return d;
+  const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay()+off*7);return d;
 }
 function dinnerWeekLabel(off){
   const sun=dinnerWeekSun(off);const sat=new Date(sun);sat.setDate(sun.getDate()+6);
@@ -898,7 +1028,8 @@ function dinnerWeekLabel(off){
   return `${f(sun)} – ${f(sat)}`;
 }
 function dailyKey(date){
-  return `day-${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  const d=new Date(date);d.setHours(0,0,0,0);
+  return `day-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function buildDinnerGrid(){
@@ -933,7 +1064,7 @@ async function loadDinnerWeek(){
   for(let i=0;i<7;i++){
     const d=new Date(sun);d.setDate(sun.getDate()+i);
     let had=false;
-    try{const r=await window.storage.get(dailyKey(d));if(r){const data=JSON.parse(r.value);had=data.dinner||false;}}catch(e){}
+    try{const r=await window_storage.get(dailyKey(d));if(r){const data=JSON.parse(r.value);had=data.dinner||false;}}catch(e){}
     const dot=document.getElementById(`din-dot-${i}`);
     if(dot){
       dot.style.background=had?'#993556':'var(--color-bg2)';
@@ -960,7 +1091,7 @@ async function getDinnerCountForMonth(mName){
   let total=0;
   for(let day=1;day<=daysInMonth;day++){
     const k=`day-2026-${String(mNum).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    try{const r=await window.storage.get(k);if(r){const data=JSON.parse(r.value);if(data.dinner)total++;}}catch(e){}
+    try{const r=await window_storage.get(k);if(r){const data=JSON.parse(r.value);if(data.dinner)total++;}}catch(e){}
   }
   return total;
 }
@@ -968,10 +1099,10 @@ async function getDinnerCountForMonth(mName){
 async function getAllTimeDinnerCount(){
   let total=0;
   try{
-    const keys=await window.storage.list('day-');
+    const keys=await window_storage.list('day-');
     if(keys&&keys.keys){
       for(const k of keys.keys){
-        try{const r=await window.storage.get(k);if(r){const data=JSON.parse(r.value);if(data.dinner)total++;}}catch(e){}
+        try{const r=await window_storage.get(k);if(r){const data=JSON.parse(r.value);if(data.dinner)total++;}}catch(e){}
       }
     }
   }catch(e){}
@@ -988,7 +1119,7 @@ async function updateDinnerStats(){
     const sun=dinnerWeekSun(dinnerWeekOffset);
     for(let i=0;i<7;i++){
       const d=new Date(sun);d.setDate(sun.getDate()+i);
-      try{const r=await window.storage.get(dailyKey(d));if(r){const data=JSON.parse(r.value);if(data.dinner)count++;}}catch(e){}
+      try{const r=await window_storage.get(dailyKey(d));if(r){const data=JSON.parse(r.value);if(data.dinner)count++;}}catch(e){}
     }
   } else if(type==='month'){
     count=await getDinnerCountForMonth(monthSel.value||'April');
@@ -1005,11 +1136,11 @@ async function updateDinnerStats(){
 async function saveFinances(){
   const total=parseInt(val('fin-total'))||0;
   const data={total,eatout:val('fin-eatout'),wins:val('fin-wins'),unplanned:val('fin-unplanned')};
-  try{await window.storage.set('finances',JSON.stringify(data));flash('fin-saved');}catch(e){}
+  try{await window_storage.set('finances',JSON.stringify(data));flash('fin-saved');}catch(e){}
   syncSavings(total);
 }
 async function loadFinances(){
-  try{const r=await window.storage.get('finances');if(!r)return;const d=JSON.parse(r.value);
+  try{const r=await window_storage.get('finances');if(!r)return;const d=JSON.parse(r.value);
     document.getElementById('fin-total').value=d.total||'';document.getElementById('fin-eatout').value=d.eatout||'';
     document.getElementById('fin-wins').value=d.wins||'';document.getElementById('fin-unplanned').value=d.unplanned||'';
     if(d.total)syncSavings(d.total);}catch(e){}
@@ -1018,10 +1149,10 @@ async function loadFinances(){
 async function saveDash(){
   const ids=['goal-derm','goal-minox','goal-budget','goal-chore1','goal-chore2','goal-bestie','goal-support'];
   const data={};ids.forEach(id=>{data[id]=chk(id);});
-  try{await window.storage.set('dashboard',JSON.stringify(data));}catch(e){}
+  try{await window_storage.set('dashboard',JSON.stringify(data));}catch(e){}
 }
 async function loadDash(){
-  try{const r=await window.storage.get('dashboard');if(!r)return;const data=JSON.parse(r.value);
+  try{const r=await window_storage.get('dashboard');if(!r)return;const data=JSON.parse(r.value);
     Object.entries(data).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.checked=v;});}catch(e){}
 }
 
@@ -1061,10 +1192,11 @@ async function importData(input){
       const count=Object.keys(backup.entries).length;
       if(!confirm(`This will restore ${count} entries from ${backup.exportedAt?new Date(backup.exportedAt).toLocaleDateString():'your backup'}.\n\nAny entries saved after that backup will be overwritten. Continue?`)){return;}
       for(const[key,value]of Object.entries(backup.entries)){
-        try{await window.storage.set(key,JSON.stringify(value));}catch(e){}
+        try{await window_storage.set(key,JSON.stringify(value));}catch(e){}
       }
       alert(`Restored ${count} entries successfully. Reloading your data...`);
-      await loadDay();await loadWeekNotes();await loadWeekMeals();await loadMonthNotes();
+      await loadDay();await loadWeekNotes();await loadWeekMeals();await loadMonthNotes();await buildWkCalendar();
+  loadLayout('daily');loadLayout('weekly');loadLayout('dashboard');loadLayout('monthly');
       await loadDash();await loadDivorce();await loadFinances();
       const wa=await aggWeek(0);pushWeek(wa);
       const ma=await aggMonth(currentMonth);pushMonth(ma);
@@ -1077,11 +1209,11 @@ async function importData(input){
 
 async function exportData(){
   try{
-    const keys=await window.storage.list();
+    const keys=await window_storage.list();
     if(!keys||!keys.keys||keys.keys.length===0){alert('No data saved yet to export.');return;}
     const backup={exportedAt:new Date().toISOString(),entries:{}};
     for(const key of keys.keys){
-      try{const r=await window.storage.get(key);if(r)backup.entries[key]=JSON.parse(r.value);}catch(e){}
+      try{const r=await window_storage.get(key);if(r)backup.entries[key]=JSON.parse(r.value);}catch(e){}
     }
     const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob);
@@ -1123,13 +1255,13 @@ async function saveWeekMeals(){
     lu1:val('wk-lu-1'),lu2:val('wk-lu-2'),lu3:val('wk-lu-3'),lu4:val('wk-lu-4'),
     sn1:val('wk-sn-1'),sn2:val('wk-sn-2'),sn3:val('wk-sn-3'),sn4:val('wk-sn-4'),
   };
-  try{await window.storage.set(wkMealKey(weekOffset),JSON.stringify(data));}catch(e){}
+  try{await window_storage.set(wkMealKey(weekOffset),JSON.stringify(data));}catch(e){}
   updateDailyLunchBadges();
 }
 
 async function loadWeekMeals(){
   let data={};
-  try{const r=await window.storage.get(wkMealKey(weekOffset));if(r)data=JSON.parse(r.value);}catch(e){}
+  try{const r=await window_storage.get(wkMealKey(weekOffset));if(r)data=JSON.parse(r.value);}catch(e){}
   buildWkDinnerGrid(data);
   ['bf','lu','sn'].forEach(function(pre){
     [1,2,3,4].forEach(function(n){
@@ -1244,18 +1376,328 @@ function updateDailyLunchBadges(){
 }
 
 
+function openMealsPopup(){
+  const prefixes=['bf','lu','sn'];
+  const listIds=['meals-popup-bf-list','meals-popup-lu-list','meals-popup-sn-list'];
+  const wkKeys=[['wk-bf-1','wk-bf-2','wk-bf-3','wk-bf-4'],['wk-lu-1','wk-lu-2','wk-lu-3','wk-lu-4'],['wk-sn-1','wk-sn-2','wk-sn-3','wk-sn-4']];
+  wkKeys.forEach(function(keys,idx){
+    const el=document.getElementById(listIds[idx]);
+    if(!el)return;
+    el.innerHTML='';
+    const options=keys.map(function(k){const inp=document.getElementById(k);return inp?inp.value.trim():'';}).filter(function(v){return v;});
+    if(!options.length){
+      el.innerHTML='<div style="font-size:12px;color:var(--color-text3);font-style:italic;padding:3px 0;">Not set</div>';
+    } else {
+      options.forEach(function(opt){
+        const row=document.createElement('div');
+        row.style.cssText='font-size:12px;color:var(--color-text);padding:4px 0;border-bottom:0.5px solid var(--color-border);';
+        row.textContent=opt;
+        el.appendChild(row);
+        row.style.borderBottom='0.5px solid var(--color-border)';
+      });
+      if(el.lastChild)el.lastChild.style.borderBottom='none';
+    }
+  });
+  document.getElementById('meals-popup-overlay').style.display='flex';
+}
+function closeMealsPopup(){
+  document.getElementById('meals-popup-overlay').style.display='none';
+}
+
+// ── Appointments ──
+const APPT_TIMES = [];
+(function(){
+  for(let h=5;h<12;h++){for(const half of [0,1]){APPT_TIMES.push({slot:`${h}-${half}`,label:`${h}:${half===0?'00':'30'} AM`});}}
+  APPT_TIMES.push({slot:'11-0',label:'11:00 AM'},{slot:'11-1',label:'11:30 AM'});
+  for(let h=12;h<=23;h++){const halves=h===23?[0]:[0,1];const hr12=h===12?12:h-12;for(const half of halves){APPT_TIMES.push({slot:`${h}-${half}`,label:`${hr12}:${half===0?'00':'30'} PM`});}}
+})();
+
+function syncApptToSched(n){
+  const slot=document.getElementById('d-appt'+n+'-time')?.value;
+  const text=document.getElementById('d-appt'+n+'-text')?.value||'';
+  if(!slot)return;
+  const inp=document.querySelector(`.sched-inp[data-slot="${slot}"]`);
+  if(inp){inp.value=text;inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,80)+'px';}
+}
+
+function getApptLabelForSlot(slot){
+  const t=APPT_TIMES.find(t=>t.slot===slot);
+  return t?t.label:'';
+}
+
+async function getApptsForDate(dateObj){
+  const key='day-'+dateObj.getFullYear()+'-'+String(dateObj.getMonth()+1).padStart(2,'0')+'-'+String(dateObj.getDate()).padStart(2,'0');
+  try{
+    const r=await window_storage.get(key);
+    if(!r)return[];
+    const d=JSON.parse(r.value);
+    const appts=[];
+    for(let n=1;n<=3;n++){
+      const time=d['appt'+n+'Time'];
+      const text=d['appt'+n+'Text'];
+      if(time&&text)appts.push(getApptLabelForSlot(time)+' — '+text);
+    }
+    return appts;
+  }catch(e){return[];}
+}
+
+// ── Weekly mini calendar ──
+async function buildWkCalendar(){
+  const grid=document.getElementById('wk-cal-grid');
+  if(!grid)return;
+  grid.innerHTML='';
+  const mon=weekMon(weekOffset);
+  const sun=new Date(mon);sun.setDate(mon.getDate()-1);
+  const today=new Date();today.setHours(0,0,0,0);
+  const WK=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  for(let i=0;i<7;i++){
+    const d=new Date(sun);d.setDate(sun.getDate()+i);
+    const isToday=d.getTime()===today.getTime();
+    const appts=await getApptsForDate(d);
+    const hasAppts=appts.length>0;
+
+    const cell=document.createElement('div');
+    cell.style.cssText='border:0.5px solid var(--color-border'+(isToday?'2':'')+');border-radius:8px;padding:10px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative;background:'+(isToday?'#E1F5EE':'var(--color-bg2)')+';transition:border-color .15s;';
+
+    const dayName=document.createElement('div');
+    dayName.style.cssText='font-size:10px;font-weight:500;color:var(--color-text2);';
+    dayName.textContent=WK[d.getDay()];
+
+    const dayNum=document.createElement('div');
+    dayNum.style.cssText='font-size:15px;font-weight:500;color:'+(isToday?'#085041':'var(--color-text)')+';';
+    dayNum.textContent=d.getDate();
+
+    cell.appendChild(dayName);
+    cell.appendChild(dayNum);
+
+    if(hasAppts){
+      const dot=document.createElement('div');
+      dot.style.cssText='width:5px;height:5px;border-radius:50%;background:'+(isToday?'#0F6E56':'#185FA5')+';margin-top:2px;';
+      cell.appendChild(dot);
+
+      const tip=document.createElement('div');
+      tip.style.cssText='display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--color-text);color:var(--color-bg);font-size:11px;padding:6px 9px;border-radius:6px;white-space:nowrap;z-index:50;line-height:1.6;pointer-events:none;';
+      tip.innerHTML=appts.join('<br>');
+      cell.appendChild(tip);
+      cell.addEventListener('mouseenter',()=>tip.style.display='block');
+      cell.addEventListener('mouseleave',()=>tip.style.display='none');
+    }
+
+    // Click navigates to that day
+    const offset=Math.round((d-today)/(1000*60*60*24));
+    cell.addEventListener('click',()=>{
+      dayOffset=offset;
+      showView('daily',document.querySelector('.nav button:nth-child(2)'));
+      loadDay();
+    });
+
+    grid.appendChild(cell);
+  }
+}
+
+// ── Shuffle / drag-and-drop layout ──
+const SORT_GROUPS = {
+  daily: ['sort-daily-left','sort-daily-right'],
+  weekly: ['sort-weekly-top','sort-weekly-left','sort-weekly-right'],
+  dashboard: ['sort-dash-left','sort-dash-right'],
+  monthly: ['sort-monthly-left','sort-monthly-right'],
+};
+const LOCKED_IDS = ['schedule-grid','sched-wrap']; // schedule block never moves
+let shuffleActive = {};
+let sortableInstances = {};
+
+function toggleShuffle(page){
+  if(shuffleActive[page]){
+    saveLayout(page);
+    disableShuffle(page);
+  } else {
+    enableShuffle(page);
+  }
+}
+
+function enableShuffle(page){
+  shuffleActive[page] = true;
+  const btn = document.getElementById('shuffle-btn-'+page);
+  if(btn){ btn.textContent = '✓ Save layout'; btn.style.background='#1D9E75'; btn.style.color='white'; btn.style.borderColor='#0F6E56'; }
+  const groups = SORT_GROUPS[page] || [];
+  sortableInstances[page] = [];
+  groups.forEach(function(gid){
+    const el = document.getElementById(gid);
+    if(!el) return;
+    // Add visual cue to cards
+    el.querySelectorAll(':scope > .card, :scope > div').forEach(function(card){
+      if(!card.classList.contains('card') && !card.querySelector('.tag')) return;
+      card.style.cursor = 'grab';
+      card.style.outline = '2px dashed var(--color-border2)';
+      card.style.outlineOffset = '2px';
+      // Add drag handle
+      if(!card.querySelector('.drag-handle')){
+        const h = document.createElement('div');
+        h.className = 'drag-handle';
+        h.innerHTML = '&#8942;&#8942;';
+        h.style.cssText = 'position:absolute;top:6px;right:8px;font-size:12px;color:var(--color-text3);letter-spacing:-2px;pointer-events:none;';
+        card.style.position = 'relative';
+        card.appendChild(h);
+      }
+    });
+    const s = Sortable.create(el, {
+      group: 'cards-'+page,
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      dragClass: 'sortable-drag',
+      filter: '#schedule-grid, #sched-wrap',
+      onEnd: function(){ /* auto-save on drop */ saveLayout(page); }
+    });
+    sortableInstances[page].push(s);
+  });
+}
+
+function disableShuffle(page){
+  shuffleActive[page] = false;
+  const btn = document.getElementById('shuffle-btn-'+page);
+  if(btn){ btn.textContent = '✦ Shuffle layout'; btn.style.background=''; btn.style.color='var(--color-text2)'; btn.style.borderColor=''; }
+  // Remove visual cues
+  const groups = SORT_GROUPS[page] || [];
+  groups.forEach(function(gid){
+    const el = document.getElementById(gid);
+    if(!el) return;
+    el.querySelectorAll(':scope > .card, :scope > div').forEach(function(card){
+      if(!card.classList.contains('card') && !card.querySelector('.tag')) return;
+      card.style.cursor = '';
+      card.style.outline = '';
+      card.style.outlineOffset = '';
+      const h = card.querySelector('.drag-handle');
+      if(h) h.remove();
+    });
+  });
+  // Destroy sortable instances
+  if(sortableInstances[page]){
+    sortableInstances[page].forEach(function(s){ try{s.destroy();}catch(e){} });
+    sortableInstances[page] = [];
+  }
+}
+
+function saveLayout(page){
+  const groups = SORT_GROUPS[page] || [];
+  const layout = {};
+  groups.forEach(function(gid){
+    const el = document.getElementById(gid);
+    if(!el) return;
+    layout[gid] = Array.from(el.children).map(function(c){ return c.id || c.className; });
+  });
+  try{ localStorage.setItem('layout-'+page, JSON.stringify(layout)); }catch(e){}
+}
+
+function loadLayout(page){
+  try{
+    const saved = localStorage.getItem('layout-'+page);
+    if(!saved) return;
+    const layout = JSON.parse(saved);
+    const groups = SORT_GROUPS[page] || [];
+    groups.forEach(function(gid){
+      const el = document.getElementById(gid);
+      if(!el || !layout[gid]) return;
+      const order = layout[gid];
+      // Only reorder direct children that already belong to this container
+      const children = Array.from(el.children);
+      const reordered = [];
+      order.forEach(function(key){
+        const match = children.find(function(c){
+          return (c.id && c.id === key) || c.className === key;
+        });
+        if(match) reordered.push(match);
+      });
+      // Append any children not found in saved order at the end
+      children.forEach(function(c){ if(!reordered.includes(c)) reordered.push(c); });
+      // Reorder within the container only
+      reordered.forEach(function(c){ el.appendChild(c); });
+    });
+  }catch(e){}
+}
+
+// ── Monthly habit streaks & win counter ──
+async function calcMonthStreaks(mName){
+  const mNum=MONTH_NUMS[mName];if(!mNum)return{};
+  const dm=new Date(2026,mNum,0).getDate();
+  const habits={
+    protein:{label:'Protein ≥100g',color:'#1D9E75',streak:0,max:0},
+    walk:{label:'Walk / movement',color:'#1D9E75',streak:0,max:0},
+    vitamins:{label:'Vitamins',color:'#534AB7',streak:0,max:0},
+    hair:{label:'Hair routine',color:'#534AB7',streak:0,max:0},
+    read:{label:'Reading',color:'#3B6D11',streak:0,max:0},
+    dinner:{label:'Home dinner',color:'#993556',streak:0,max:0},
+    chore1:{label:'Travis chores',color:'#993556',streak:0,max:0},
+    chore2:{label:'Jamie chores',color:'#993556',streak:0,max:0},
+  };
+  for(let day=1;day<=dm;day++){
+    const k=`day-2026-${String(mNum).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    let data={};try{const r=await window_storage.get(k);if(r)data=JSON.parse(r.value);}catch(e){}
+    Object.keys(habits).forEach(function(h){
+      const hit=h==='protein'?(data.protein&&parseFloat(data.protein)>=100):(data[h]||false);
+      if(hit){habits[h].streak++;habits[h].max=Math.max(habits[h].max,habits[h].streak);}
+      else{habits[h].streak=0;}
+    });
+  }
+  return habits;
+}
+
+async function renderMonthStreaks(mName){
+  const el=document.getElementById('m-streak-rows');
+  if(!el)return;
+  el.innerHTML='<div style="font-size:11px;color:var(--color-text3);">Calculating...</div>';
+  const habits=await calcMonthStreaks(mName);
+  const dm=new Date(2026,MONTH_NUMS[mName],0).getDate();
+  el.innerHTML='';
+  Object.values(habits).forEach(function(h){
+    const pct=dm>0?Math.round((h.max/dm)*100):0;
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--color-border);';
+    row.innerHTML=`<div style="font-size:13px;color:var(--color-text);min-width:120px;">${h.label}</div><div style="flex:1;margin:0 12px;height:5px;background:var(--color-bg2);border-radius:3px;overflow:hidden;"><div style="height:5px;border-radius:3px;background:${h.color};width:${pct}%;"></div></div><div style="font-size:13px;font-weight:500;color:var(--color-text);min-width:48px;text-align:right;">${h.max} day${h.max!==1?'s':''}</div>`;
+    el.appendChild(row);
+  });
+  if(el.lastChild)el.lastChild.style.borderBottom='none';
+}
+
+async function renderMonthWins(mName){
+  const mNum=MONTH_NUMS[mName];if(!mNum)return;
+  // Get all weeks that overlap with this month
+  let total=0,possible=0;
+  // Check weeks from storage
+  const keys=[];
+  try{const r=await window_storage.list('week-wins-');if(r&&r.keys)keys.push(...r.keys);}catch(e){}
+  // Also check all weekly-notes keys for the month
+  for(let week=0;week<6;week++){
+    const d=new Date(2026,mNum-1,1+week*7);
+    if(d.getMonth()+1!==mNum&&week>0)continue;
+    const mon=new Date(d);mon.setDate(d.getDate()-((d.getDay()+6)%7));
+    const wk=`week-wins-${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
+    try{
+      const r=await window_storage.get(wk);
+      if(r){const d2=JSON.parse(r.value);total+=(d2.w1cb?1:0)+(d2.w2cb?1:0)+(d2.w3cb?1:0);possible+=3;}
+      else{possible+=3;}
+    }catch(e){possible+=3;}
+  }
+  const numEl=document.getElementById('m-wins-num');
+  const denomEl=document.getElementById('m-wins-denom');
+  if(numEl)numEl.textContent=total;
+  if(denomEl)denomEl.textContent=`of ${possible} weekly wins completed`;
+}
+
 async function init(){
   buildSchedule();
   buildMoodButtons();makeRating();
   const thisMonth=new Date().toLocaleDateString('en-US',{month:'long'});
   currentMonth=MONTHS.includes(thisMonth)?thisMonth:'April';
   buildMonthTabs();
+  const mh=document.getElementById('month-heading');if(mh)mh.textContent=currentMonth;
   await loadDash();await loadDivorce();await loadFinances();
   await loadDinnerWeek();
   const dinMonSel=document.getElementById('din-filter-month');
   if(dinMonSel)dinMonSel.value=MONTHS.includes(currentMonth)?currentMonth:'April';
   updateDinnerStats();
-  await loadDay();await loadWeekNotes();await loadWeekMeals();await loadMonthNotes();
+  await loadDay();await loadWeekNotes();await loadWeekMeals();await loadMonthNotes();await buildWkCalendar();
+  loadLayout('daily');loadLayout('weekly');loadLayout('dashboard');loadLayout('monthly');
   const wa=await aggWeek(0);pushWeek(wa);
   const ma=await aggMonth(currentMonth);pushMonth(ma);
   syncSavings();syncDivorce();
