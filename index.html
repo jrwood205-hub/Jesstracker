@@ -467,17 +467,11 @@ textarea { width:100%; font-size:13px; padding:8px; border:0.5px solid var(--col
           <div style="font-size:10px;color:var(--color-text3);margin-bottom:10px;font-style:italic;">Longest consecutive streak for each habit</div>
           <div id="m-streak-rows"></div>
         </div>
-      </div>
-    </div>
-    <div class="card" style="margin-top:0.75rem;">
-      <div class="tag" style="background:#EEEDFE;color:#3C3489;">Monthly reflection</div>
-      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
-        <div>
+        <div class="card">
+          <div class="tag" style="background:#EEEDFE;color:#3C3489;">Monthly reflection</div>
           <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">What went well this month?</div><textarea id="m-good" rows="3" onchange="saveMonthNotes()"></textarea></div>
           <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">What was hardest?</div><textarea id="m-hard" rows="3" onchange="saveMonthNotes()"></textarea></div>
-          <div><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">Did I use the minimum viable version of any goal?</div><textarea id="m-mvp" rows="2" onchange="saveMonthNotes()"></textarea></div>
-        </div>
-        <div>
+          <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">Did I use the minimum viable version of any goal?</div><textarea id="m-mvp" rows="2" onchange="saveMonthNotes()"></textarea></div>
           <div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">One thing to do differently next month:</div><textarea id="m-diff" rows="2" onchange="saveMonthNotes()"></textarea></div>
           <div><div style="font-size:12px;font-weight:500;color:var(--color-text2);margin-bottom:4px;">One thing I am proud of:</div><textarea id="m-proud" rows="2" onchange="saveMonthNotes()"></textarea></div>
         </div>
